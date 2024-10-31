@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-init-scripts
+  namespace: smart-meter-gateway
+data:
+  0_create_users_tables_permissions.sh: |
+    #!/bin/bash
+    set -e
+
+    # Connect to PostgreSQL as the postgres superuser and create the database
+    psql -v ON_ERROR_STOP=1 --username "postgres" <<-EOSQL
+
+      DROP DATABASE IF EXISTS smart_meter_gateway;
+
+      CREATE DATABASE smart_meter_gateway;
+      \c smart_meter_gateway;
+
+      -- Create the users table
+      CREATE TABLE users (
+          id INTEGER PRIMARY KEY,                 -- Numeric id, manually assigned for the context of this project
+          username VARCHAR(255) UNIQUE,           -- String for the username
+          password_hash VARCHAR(255)              -- String for the password hash
+      );
+
+      -- Create the meters table
+      CREATE TABLE meters (
+          id VARCHAR(255) PRIMARY KEY,               -- Id that is contained in the certificate
+          user_id INTEGER NOT NULL,                  -- Integer for the user id
+          FOREIGN KEY (user_id) REFERENCES users(id) -- Foreign key to the users table
+      );
+
+      -- Create the consumption_values table
+      CREATE TABLE consumption_values (
+          id SERIAL PRIMARY KEY,                       -- Numeric id with auto-increment
+          meter_id VARCHAR(255),                       -- String for the meter id
+          created TIMESTAMP,                           -- Date time of creation
+          period_value DECIMAL(10, 2),                 -- Decimal number with two decimal precision for kWh
+          period_start TIMESTAMP,                      -- Date time for start of the period
+          period_end TIMESTAMP,                        -- Date time for end of the period
+          signature VARCHAR(1023),                     -- String for the signature
+          sent_to_operator BOOLEAN DEFAULT FALSE,      -- Boolean for sent to operator
+          FOREIGN KEY (meter_id) REFERENCES meters(id) -- Foreign key to the meters table
+      );
+
+      -- Create the logs table
+      CREATE TABLE logs (
+          id SERIAL PRIMARY KEY,                       -- Integer id with auto-increment
+          user_id INTEGER,                             -- User related to the log entry
+          meter_id VARCHAR(255),                       -- Meter related to the log entry
+          created TIMESTAMP,                           -- Date time of creation
+          level VARCHAR(50),                           -- Log level
+          message TEXT,                                -- Log message
+          source VARCHAR(255),                         -- Source of the log entry
+          FOREIGN KEY (user_id) REFERENCES users(id)   -- Foreign key to the users table
+      );
+      
+      -- Create roles (users) without passwords
+      CREATE ROLE service_database WITH LOGIN;
+      CREATE ROLE job_operator WITH LOGIN;
+      CREATE ROLE webservice_users WITH LOGIN;
+      CREATE ROLE webservice_smart_meter WITH LOGIN;
+
+      -- Grant specific permissions to each role
+
+      -- job_operator
+      GRANT SELECT ON TABLE consumption_values TO job_operator;
+      GRANT UPDATE ON TABLE consumption_values TO job_operator;
+      GRANT DELETE ON TABLE consumption_values TO job_operator;
+      GRANT INSERT ON TABLE logs TO job_operator;
+
+      -- webservice_users 
+      GRANT SELECT ON TABLE consumption_values TO webservice_users;
+      GRANT SELECT ON TABLE logs TO webservice_users;
+      GRANT INSERT ON TABLE logs TO webservice_users;
+      GRANT SELECT ON TABLE users TO webservice_users;
+      GRANT UPDATE ON TABLE users TO webservice_users;
+      GRANT SELECT ON TABLE meters TO webservice_users;
+
+      -- webservice_smart_meter
+      GRANT INSERT ON TABLE consumption_values TO webservice_smart_meter;
+
+      -- Allow writing webservices to increment the sequences
+      GRANT USAGE, SELECT ON SEQUENCE consumption_values_id_seq TO webservice_smart_meter;
+      GRANT USAGE, SELECT ON SEQUENCE logs_id_seq TO webservice_users; 
+      GRANT USAGE, SELECT ON SEQUENCE logs_id_seq TO job_operator;
+      
+
+      -- Seed the database with users and meters 
+      INSERT INTO users (id, username, password_hash) VALUES (1, 'Kunde1', 'AQAAAAIAAYagAAAAEGjJ67Njgch2e1fb6w+39CCEHzaNNMoVUeGILxCVtj/Oe7xFt8Wg5JgEVI5yfCCHwQ==');
+      INSERT INTO users (id, username, password_hash) VALUES (2, 'Kunde2', 'AQAAAAIAAYagAAAAEBOuBGHrnUTtSQQzA1f18OT1m4ttI8SPga4h5TjUNqt7Vq7wSGM5NKP3h/XNvxAywg==');
+
+      INSERT INTO meters (id, user_id) VALUES ('CN=smart_meter_2210794b', 1);
+      INSERT INTO meters (id, user_id) VALUES ('CN=smart_meter_f612b876', 1);
+      INSERT INTO meters (id, user_id) VALUES ('CN=smart_meter_c41c7e37', 2);
+
+    EOSQL

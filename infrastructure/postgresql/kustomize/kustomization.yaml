@@ -1,0 +1,4 @@
+resources:
+  - secret-certificates.yaml
+  - secret-credentials.yaml
+  - configmap-db-init-scripts.yaml

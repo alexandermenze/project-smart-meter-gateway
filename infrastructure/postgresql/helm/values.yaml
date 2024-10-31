@@ -1,0 +1,74 @@
+global:
+  postgresql:
+    ## @param global.postgresql.auth.username Name for a custom user to create (overrides `auth.username`)
+    ## @param global.postgresql.auth.database Name for a custom database to create (overrides `auth.database`)
+    ## @param global.postgresql.auth.existingSecret Name of existing secret to use for PostgreSQL credentials (overrides `auth.existingSecret`).
+    ## @param global.postgresql.auth.secretKeys.adminPasswordKey Name of key in existing secret to use for PostgreSQL credentials (overrides `auth.secretKeys.adminPasswordKey`). Only used when `global.postgresql.auth.existingSecret` is set.
+    auth:
+      username: database
+      database: smart_meter_gateway
+      existingSecret: database-credentials
+      secretKeys:
+        adminPasswordKey: adminPassword
+        userPasswordKey: userPassword
+
+## TLS configuration
+##
+tls:
+  ## @param tls.enabled Enable TLS traffic support
+  ##
+  enabled: true
+  ## @param tls.certificatesSecret Name of an existing secret that contains the certificates
+  ##
+  certificatesSecret: database-certificates
+  ## @param tls.certFilename Certificate filename
+  ##
+  certFilename: database.crt
+  ## @param tls.certKeyFilename Certificate key filename
+  ##
+  certKeyFilename: database.key
+  ## @param tls.certCAFilename CA Certificate filename
+  ## If provided, PostgreSQL will authenticate TLS/SSL clients by requesting them a certificate
+  ## ref: https://www.postgresql.org/docs/9.6/auth-methods.html
+  ##
+  certCAFilename: ca.crt
+
+## @section PostgreSQL Primary parameters
+##
+primary:
+  ## @param primary.configuration PostgreSQL Primary main configuration to be injected as ConfigMap
+  ## ref: https://www.postgresql.org/docs/current/static/runtime-config.html
+  ##
+  configuration: ""
+  ## PostgreSQL Primary persistence configuration
+  ##
+  persistence:
+    ## @param primary.persistence.enabled Enable PostgreSQL Primary data persistence using PVC
+    ##
+    enabled: false 
+  #
+  # This forces certificate authentication for all connections except for localhost.
+  # Additionally the verify-full flag configures the server to validate the CA chain and the Common Name (CN) of the client certificate.
+  pgHbaConfiguration: |
+    hostssl all all 0.0.0.0/0 cert clientcert=verify-full
+    hostssl all all ::/0 cert clientcert=verify-full
+    host all all 127.0.0.1/32 trust
+    local all postgres trust
+  ## Initdb configuration
+  ## ref: https://github.com/bitnami/containers/tree/main/bitnami/postgresql#specifying-initdb-arguments
+  ##
+  initdb:
+    ## @param primary.initdb.scriptsConfigMap ConfigMap with scripts to be run at first boot
+    ## NOTE: This will override `primary.initdb.scripts`
+    ##
+    scriptsConfigMap: db-init-scripts
+  ## PostgreSQL Primary service configuration
+  ##
+  service:
+    ## Node ports to expose
+    ## NOTE: choose port between <30000-32767>
+    ## @param primary.service.nodePorts.postgresql Node port for PostgreSQL
+    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+    ##
+    nodePorts:
+      postgresql: "32432"

@@ -1,0 +1,13 @@
+# Generate Certificate Authority
+
+1. Generate private key using `openssl genrsa -out ca.key 4096`
+2. Create certificate from private key using `openssl req -x509 -new -nodes -key ca.key -sha256 -days 1826 -out ca.crt`
+
+# Generate Device Certificates
+
+1. Generate new private key for device: `openssl genrsa -out device.key 4096`
+2. Create new certificate config file from smart-meter.cnf
+3. Update the common name, default common name and subject alternative names
+4. Create certificate signing request using `openssl req -new -key device.key -out device.csr -config device.cnf`
+5. Create and sign the certificate using `openssl x509 -req -in device.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out device.crt -days 365 -sha256 -extensions v3_req -extfile device.cnf`
+6. Validate the certificate using `openssl x509 -in device.crt -noout -text`

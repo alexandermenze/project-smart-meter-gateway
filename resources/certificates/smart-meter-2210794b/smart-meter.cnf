@@ -1,0 +1,16 @@
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+
+[ req_distinguished_name ]
+commonName = smart_meter_2210794b
+commonName_default = smart_meter_2210794b
+
+[v3_req]
+basicConstraints = CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment
+extendedKeyUsage = clientAuth
+subjectAltName = @alt_names
+
+[alt_names]
+URI.1 = urn:device:smart_meter_2210794b

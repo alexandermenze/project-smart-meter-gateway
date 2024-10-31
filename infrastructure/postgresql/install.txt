@@ -1,0 +1,1 @@
+helm install database oci://registry-1.docker.io/bitnamicharts/postgresql --namespace smart-meter-gateway -f helm/values.yaml

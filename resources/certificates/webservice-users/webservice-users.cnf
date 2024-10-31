@@ -1,0 +1,16 @@
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+
+[ req_distinguished_name ]
+commonName = webservice_users
+commonName_default = webservice_users
+
+[v3_req]
+basicConstraints = CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment
+extendedKeyUsage = clientAuth, serverAuth 
+subjectAltName = @alt_names
+
+[alt_names]
+URI.1 = urn:service:webservice_users
