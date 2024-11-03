@@ -35,7 +35,7 @@ data:
           id SERIAL PRIMARY KEY,                       -- Numeric id with auto-increment
           meter_id VARCHAR(255),                       -- String for the meter id
           created TIMESTAMP,                           -- Date time of creation
-          period_value DECIMAL(10, 2),                 -- Decimal number with two decimal precision for kWh
+          period_value DECIMAL(10, 3),                 -- Decimal number with three decimal precision for kWh
           period_start TIMESTAMP,                      -- Date time for start of the period
           period_end TIMESTAMP,                        -- Date time for end of the period
           signature VARCHAR(1023),                     -- String for the signature
@@ -54,7 +54,7 @@ data:
           source VARCHAR(255),                         -- Source of the log entry
           FOREIGN KEY (user_id) REFERENCES users(id)   -- Foreign key to the users table
       );
-      
+
       -- Create roles (users) without passwords
       CREATE ROLE service_database WITH LOGIN;
       CREATE ROLE job_operator WITH LOGIN;
@@ -62,6 +62,9 @@ data:
       CREATE ROLE webservice_smart_meter WITH LOGIN;
 
       -- Grant specific permissions to each role
+
+      -- webservice_smart_meter
+      GRANT INSERT ON TABLE consumption_values TO webservice_smart_meter;
 
       -- job_operator
       GRANT SELECT ON TABLE consumption_values TO job_operator;
@@ -77,10 +80,7 @@ data:
       GRANT UPDATE ON TABLE users TO webservice_users;
       GRANT SELECT ON TABLE meters TO webservice_users;
 
-      -- webservice_smart_meter
-      GRANT INSERT ON TABLE consumption_values TO webservice_smart_meter;
-
-      -- Allow writing webservices to increment the sequences
+      -- Allow webservices to increment the sequences which is required for the auto-incrementing primary keys
       GRANT USAGE, SELECT ON SEQUENCE consumption_values_id_seq TO webservice_smart_meter;
       GRANT USAGE, SELECT ON SEQUENCE logs_id_seq TO webservice_users; 
       GRANT USAGE, SELECT ON SEQUENCE logs_id_seq TO job_operator;

@@ -7,6 +7,7 @@ namespace Database.Repositories;
 // This class is responsible for all database operations regarding the users table.
 public class UserRepository(DatabaseConnectionFactory connectionFactory)
 {
+    // Gets a user by it's name
     public async Task<User?> GetByUsername(string username)
     {
         await using var connection = await connectionFactory.OpenConnection();
@@ -19,6 +20,7 @@ public class UserRepository(DatabaseConnectionFactory connectionFactory)
             new { Username = username });
     }
 
+    // Updates the password hash for a user
     public async Task UpdatePasswordHash(User user, string passwordHash)
     {
         await using var connection = await connectionFactory.OpenConnection();
@@ -31,6 +33,4 @@ public class UserRepository(DatabaseConnectionFactory connectionFactory)
             """,
             new { PasswordHash = passwordHash, user.Id });
     }
-
-    // In a production ready system, which is out of scope for this project, methods for password reset should be implemented.
 }

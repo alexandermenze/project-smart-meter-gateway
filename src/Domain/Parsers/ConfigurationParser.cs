@@ -22,6 +22,7 @@ public class ConfigurationParser(IConfiguration configuration)
         return this;
     }
 
+    // Convert the ServiceAuthConfig string certificates into X509Certificate2 at a central location for re-use
     public ConfigurationParser Map(out ServiceAuthOptions serviceAuthOptions)
     {
         Get(ServiceAuthConfig.Key, out ServiceAuthConfig serviceAuthConfig);
@@ -38,6 +39,7 @@ public class ConfigurationParser(IConfiguration configuration)
         return this;
     }
 
+    // Incorporates the service certificates into the database configuration
     public ConfigurationParser Map(out DatabaseConnectionOptions databaseConnectionOptions)
     {
         Map(out ServiceAuthOptions serviceAuthOptions);
@@ -52,6 +54,7 @@ public class ConfigurationParser(IConfiguration configuration)
         return this;
     }
 
+    // Parse the token signing key and the token lifetime for easier handling
     public ConfigurationParser Map(out JwtOptions jwtOptions)
     {
         Get(UserAuthConfig.Key, out UserAuthConfig userAuthConfig);

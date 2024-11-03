@@ -8,6 +8,7 @@ namespace Database.Repositories;
 // This class is responsible for all database operations regarding the consumption_values table.
 public class ConsumptionValueRepository(DatabaseConnectionFactory connectionFactory)
 {
+    // Returns all consumption values where the sent property is set to false (default)
     public async Task<ImmutableArray<ConsumptionValue>> GetUnsent()
     {
         await using var connection = await connectionFactory.OpenConnection();
@@ -22,6 +23,7 @@ public class ConsumptionValueRepository(DatabaseConnectionFactory connectionFact
         return [..values];
     }
 
+    // Returns all consumption values which are older than the specified date
     public async Task<ImmutableArray<ConsumptionValue>> GetSentOlderThan(DateTime date)
     {
         await using var connection = await connectionFactory.OpenConnection();
@@ -38,6 +40,7 @@ public class ConsumptionValueRepository(DatabaseConnectionFactory connectionFact
         return [..values];
     }
 
+    // Gets all consumption values filtered by the meter id
     public async Task<ImmutableArray<ConsumptionValue>> GetForMeter(string meterId)
     {
         await using var connection = await connectionFactory.OpenConnection();
@@ -53,6 +56,7 @@ public class ConsumptionValueRepository(DatabaseConnectionFactory connectionFact
         return [..values];
     }
     
+    // Appends a new consumption value to the table
     public async Task Insert(ConsumptionValue value)
     {
         await using var connection = await connectionFactory.OpenConnection();
@@ -67,6 +71,7 @@ public class ConsumptionValueRepository(DatabaseConnectionFactory connectionFact
             value));
     }
 
+    // Sets the sent status to true
     public async Task SetSentToOperator(ConsumptionValue value)
     {
         await using var connection = await connectionFactory.OpenConnection();
@@ -76,6 +81,7 @@ public class ConsumptionValueRepository(DatabaseConnectionFactory connectionFact
             value));
     }
 
+    // Deletes a consumption value from the database
     public async Task Delete(ConsumptionValue value)
     {
         await using var connection = await connectionFactory.OpenConnection();

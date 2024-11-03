@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Security.Claims;
 using Database.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace UserWebservice.Controllers;
 

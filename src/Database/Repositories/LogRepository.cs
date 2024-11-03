@@ -8,6 +8,7 @@ namespace Database.Repositories;
 // This class is responsible for all database operations regarding the logs table.
 public class LogRepository(DatabaseConnectionFactory connectionFactory)
 {
+    // Gets all logs that have been created in the context of the user with the userId (such as logins)
     public async Task<ImmutableArray<LogEntry>> GetForUser(int userId)
     {
         await using var connection = await connectionFactory.OpenConnection();
@@ -22,6 +23,7 @@ public class LogRepository(DatabaseConnectionFactory connectionFactory)
         return [..logs];
     }
 
+    // Gets all logs that have been created in the context of the meter with meterId
     public async Task<ImmutableArray<LogEntry>> GetForMeter(string meterId)
     {
         await using var connection = await connectionFactory.OpenConnection();
@@ -36,6 +38,7 @@ public class LogRepository(DatabaseConnectionFactory connectionFactory)
         return [..logs];
     }
 
+    // Appends a new log entry to the table
     public async Task Insert(LogEntry logEntry)
     {
         await using var connection = await connectionFactory.OpenConnection();
